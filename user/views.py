@@ -41,8 +41,10 @@ def login(request):
         else:
             # 获取全局的error信
             # 息,只显示第一个
-            if login_form.errors.get('__all__'):
-                error = login_form.errors.get('__all__')[0]
+            errors = login_form.errors.get('__all__')
+            logger.info('got error count: %s', len(errors))
+            if len(errors) != 0:
+                error = errors[0]
 
     logger.info('got local vars: %s', locals())
     return render(request, 'login.html', locals())
@@ -55,24 +57,30 @@ def register(request):
     error = ''
     register_form = forms.RegisterForm()
     if request.method == 'POST':
-        register_form = forms.RegisterForm(request.POST)
+        register_form = forms.RegisterForm(request.POST)  # 为什么要传 request.POST
         if register_form.is_valid():    # 判断是否填写完成
             user = register_form.cleaned_data  # 清理数据
             models.User.objects.create(username=user['username'], password=user['password1'])
             return redirect('/login/')
         else:
             # 获取全局的error信息,只显示第一个
-            if register_form.errors.get('__all__'):
-                error = register_form.errors.get('__all__')[0]
+            errors = register_form.errors.get('__all__')
+            logger.info('got error count: %s', len(errors))
+            if len(errors) != 0:
+                error = errors[0]
 
     return render(request, 'register.html', locals())
 
 
 @csrf_exempt
 def logout(request):
+    logger.info('request session: %s', request.session.items())
     if not request.session.get('is_login', None):
         # 如果本来就未登录，也就没有登出一说
+        logger.info('request session is not logged in, no need to flush')
         return redirect("/")
+
+    # flush 清除 session 并跳转到主页
     request.session.flush()
     return redirect("/")
 
