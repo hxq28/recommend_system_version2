@@ -10,6 +10,7 @@ logger = logging.getLogger('user')
 
 @csrf_exempt
 def index(request):
+    logger.info('request session: %s', request.session.items())
     title = '首页'
     logger.info('got local vars: %s', locals())
     return render(request, 'index.html', locals())
@@ -17,14 +18,18 @@ def index(request):
 
 @csrf_exempt
 def login(request):
+    logger.info('request session: %s', request.session.items())
     title = '登录'
     error = ''
     login_form = forms.LoginForm()
-    logger.info('login form: %s', login_form)
+
     if request.method == 'POST':
         login_form = forms.LoginForm(request.POST)
-        if login_form.is_valid():  # 判断是否填写完成
-            user = login_form.cleaned_data  # 清理数据
+        is_valid = login_form.is_valid()
+        logger.info('POST login form is valid: %s', is_valid)
+        if is_valid:  # 判断是否填写完成，如果 clean 方法报 attribute error 则为 false
+            user = login_form.cleaned_data  # 获取表单提交数据
+            logger.info('got user: %s', user)
             user_info = models.User.objects.get(username=user['username'])
             request.session['is_login'] = True
             request.session['username'] = user['username']
@@ -34,15 +39,18 @@ def login(request):
             request.session['epoch'] = '本科批'
             return redirect('/')
         else:
-            # 获取全局的error信息,只显示第一个
+            # 获取全局的error信
+            # 息,只显示第一个
             if login_form.errors.get('__all__'):
                 error = login_form.errors.get('__all__')[0]
 
+    logger.info('got local vars: %s', locals())
     return render(request, 'login.html', locals())
 
 
 @csrf_exempt
 def register(request):
+    logger.info('request session: %s', request.session.items())
     title = '注册'
     error = ''
     register_form = forms.RegisterForm()
@@ -71,12 +79,15 @@ def logout(request):
 
 @csrf_exempt
 def student_info(request):
+    logger.info('request session: %s', request.session.items())
     title = '个人信息'
-    if not request.session.get('is_login', None):
+    if not request.session.get('is_login'):
         # 如果本来就未登录，也就没有信息一说，跳去登录界面
         return redirect("/login/")
-    username = request.session.get('username', None)
+
+    username = request.session.get('username')
     user = models.User.objects.get(username=username)
+    logger.info('got user: %s', user.__dict__)
     if request.method == 'GET':
         student_form = forms.StudentInfoForm(initial={
             'sex': user.sex,
@@ -94,4 +105,6 @@ def student_info(request):
             user.save()
             message = '修改成功'
             request.session['student_type'] = student_form.cleaned_data['subject']
+
+    logger.info('got local vars: %s', locals())
     return render(request, 'student_info.html', locals())

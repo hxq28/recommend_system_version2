@@ -34,6 +34,7 @@ class LoginForm(forms.Form):
         else:
             if user.password != self.cleaned_data.get('password'):
                 raise ValidationError('密码输入错误')
+
     username = forms.CharField(label="用户名", max_length=128, widget=forms.TextInput(attrs={'class': 'form-control'}))
     password = forms.CharField(label="密码", max_length=256, widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
@@ -45,6 +46,11 @@ class StudentInfoForm(forms.Form):
     )
     province_gender = (
         ('广东', '广东'),
+        ('江苏', '江苏'),
+        ('浙江', '浙江'),
+        ('湖南', '湖南'),
+        ('湖北', '湖北'),
+        ('上海', '上海'),
     )
     subject_gender = (
         ('理科', '理科'),
