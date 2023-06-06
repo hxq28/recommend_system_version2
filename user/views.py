@@ -1,13 +1,17 @@
+import logging
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt    # 取消csrf
 from . import forms
 from . import models
+
+logger = logging.getLogger('user')
 # Create your views here.
 
 
 @csrf_exempt
 def index(request):
     title = '首页'
+    logger.info('got local vars: %s', locals())
     return render(request, 'index.html', locals())
 
 
@@ -16,6 +20,7 @@ def login(request):
     title = '登录'
     error = ''
     login_form = forms.LoginForm()
+    logger.info('login form: %s', login_form)
     if request.method == 'POST':
         login_form = forms.LoginForm(request.POST)
         if login_form.is_valid():  # 判断是否填写完成
